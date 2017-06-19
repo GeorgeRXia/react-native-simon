@@ -1,0 +1,3 @@
+rootProject.name = 'Simon_react'
+
+include ':app'
