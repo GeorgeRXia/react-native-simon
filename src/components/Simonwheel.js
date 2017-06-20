@@ -30,7 +30,6 @@ class Simonwheel extends Component {
     playerSequence: [],
     round: 1,
     startGame: props.startGame,
-    playersTurn: false,
     playerScore: 0,
 
 
@@ -41,12 +40,12 @@ class Simonwheel extends Component {
 render() {
     if (this.state.startGame && this.state.computerSequence.length < this.state.round){
         return <View style={styles.container} >
-          {this._renderTiles()}
+          {this.renderTiles()}
             {this.addToSequence()}
           </View>
     }else{
       return <View style={styles.container} >
-        {this._renderTiles()}
+        {this.renderTiles()}
 
         </View>
 
@@ -55,8 +54,8 @@ render() {
 }
 
 
-// create four tiles
-_renderTiles() {
+
+renderTiles() {
   let result = [];
   let i = 1;
   let bgColors = ["", "","#3275DD", "#D93333", "#64D23B", "#FED731"];
@@ -67,22 +66,22 @@ _renderTiles() {
         top: row * CELL_SIZE + CELL_PADDING
       };
 
-      result.push(this._renderTile(i++, position, {backgroundColor: bgColors[i]}, {backgroundColor: 'black'}));
+      result.push(this.renderTile(i++, position, {backgroundColor: bgColors[i]}, {backgroundColor: 'black'}));
 
     }
   }
   return result;
 }
 
-// create one tile
-_renderTile(id, position, bgColor, litBgColor) {
 
-  return (<TouchableOpacity onPress={() => this._playTheGame(id)}>
+renderTile(id, position, bgColor, litBgColor) {
+
+  return (<TouchableOpacity onPress={() => this.playTheGame(id)}>
     <View style={[styles.tile, position, this.state.lit == id ? litBgColor : bgColor]}><Text style={styles.letter}>{id}</Text>
     </View>
   </TouchableOpacity>)
 }
-_playTheGame(id){
+playTheGame(id){
       let computerSequence = this.state.computerSequence;
 
       let playerSequence = this.state.playerSequence;
@@ -115,7 +114,7 @@ addToRound(){
   let currentRound = this.state.round;
   currentRound ++;
   console.log(currentRound);
-  this.setState({round: currentRound, playerSequence: [], playersTurn: false})
+  this.setState({round: currentRound, playerSequence: []})
 
 }
 
@@ -126,63 +125,79 @@ addToSequence (){
   let newSequence  = this.state.computerSequence
    newSequence.push(addToSequence)
 
-
-
   this.setState({computerSequence:newSequence})
-
+  console.log(newSequence);
 this.animateSequence(newSequence)
 
 
 }
 animateSequence(newSequence){
 
-  // let allSequence = newSequence
-  // console.log(allSequence );
-  // let that = this
-  //
-  // for(let t = 0; t<newSequence.length; t++){
-  //   console.log(allSequence[t-1]);
-  //   if (allSequence[t] === allSequence[t-1]){
-  //     console.log("doubled up");
-  //     this.setState({lit:0})
-  //
-  //
-  //   }
-  //   setTimeout(function(){
-  //
-  //
-  //       that.setState({lit:allSequence[t]})
-  //
-  //   }, t * 1000);
-  //   if (t >= newSequence.length) {
-  //
-  //     setTimeout(() => this.setState({lit: 0}), 1000);
-  //   }
-  //
-  //
-  // }
-  // console.log(newSequence);
-  var i = 0;
-  this.intervalId = setInterval(() => {
 
-    if (newSequence[i] === newSequence[i-1]){
-      this.setState({lit: 0});
+  var that = this
+  for(let i = 0; i<newSequence.length; i++){
 
-    }
-    this.setState({lit: newSequence[i]});
-    i++;
-    if (i >= newSequence.length) {
-      clearInterval(this.intervalId);
-      setTimeout(() => this.setState({lit: 0}), 1000);
-    }
-  }, 1000)
+      setTimeout(function(){
+
+        setTimeout(function(){
+          that.setState({lit: newSequence[i]})
+        }, 800)
+
+        if(newSequence[i] === newSequence[i-1]){
+          console.log("double up");
+          setTimeout(function(){
+
+            that.setState({lit:0})
+
+        },990)
+
+        }else{
+        setTimeout(function(){
+          that.setState({lit: 0})
+
+        },1000)
+      }
+
+
+      }, i * 1000);
+
+
+
+  }
+
+
+//   var i = 0;
+// var that = this
+//   this.intervalId = setInterval(() => {
+//     if (newSequence[i] === newSequence[i-1]) {
+//       console.log("double up");
+//       this.setState({lit:0})
+//
+//       setTimeout(function(){
+//
+//           that.setState({lit:newSequence[i]})
+//
+//       }, 1000)
+//
+//       i++
+//     }else{
+//
+//
+//
+//       that.setState({lit: newSequence[i]})
+//
+//
+//     i++;
+//   }
+//     if (i >= newSequence.length) {
+//       clearInterval(this.intervalId);
+//       setTimeout(() => this.setState({lit: 0}), 1000);
+//     }
+//   }, 1000)
 
 
 }
 
-clearLit(){
-setTimeout(() => this.setState({lit: 0}), 10000)
-}
 gameOver(){
 
     this.props.setGame()
