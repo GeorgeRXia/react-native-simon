@@ -20,7 +20,7 @@ const LETTER_SIZE = 50;
 
 
 
-class Simonwheel extends Component {
+class Multiplayer extends Component {
   constructor(props){
     super(props)
   this.state = {
@@ -30,24 +30,115 @@ class Simonwheel extends Component {
     playerSequence: [],
     round: 1,
     startGame: props.startGame,
-    score: 0
+    score: 0,
+    history:"",
+    gameStatus:""
 
   };
 
-
 }
 componentWillMount(){
-  console.log("In the will mount");
+
+  this.ws = new WebSocket('ws://localhost:3001');
+
+  this.ws.onopen = this.onOpenConnection;
+  this.ws.onmessage = this.onScoreReceived;
+  this.ws.onerror = this.onError;
+  this.ws.onclose = this.onClose;
   this.addToSequence()
+}
+
+onOpenConnection = () =>{
+  console.log("open");
+
 
 }
+
+onScoreReceived = (event) =>{
+  console.log("score received");
+  console.log( event.data);
+  this.setState({
+
+    history: event.data
+    // history : [
+    //   ...this.state.history, {owner: false, score: event.data}
+    //
+    // ],
+
+
+
+  })
+
+  this.setState({
+
+    history: event.data,
+    gameStatus: "done"
+
+
+
+  })
+
+
+
+}
+onError = (event) => {
+  console.log("onerror", event.message);
+
+}
+
+onClose = (event) => {
+
+console.log("onclose", event.code, event.reason);
+
+}
+
+onSendScore = (status) => {
+console.log("sent it");
+
+
+  let score = this.state.score;
+this.ws.send(JSON.stringify(score));
+
+
+
+
+if(status === "done"){
+  this.setState({
+    gameStatus: "done"
+
+
+  })
+
+}
+
+}
+
 
 
 
 render() {
+if(this.state.gameStatus === ""){
+  return (
+    <View>
+    <Text style={styles.score}>{this.state.history} </Text>
+    <Text style={styles.score}> {this.state.score} </Text>
 
+    <View style={styles.container} >
+
+    {this.renderTiles()}
+
+    </View>
+
+    </View>
+  )
+
+
+}
+
+else{
       return (
         <View>
+        <Text style={styles.score}>{this.state.history} </Text>
         <Text style={styles.score}> {this.state.score} </Text>
 
         <View style={styles.container} >
@@ -55,8 +146,11 @@ render() {
         {this.renderTiles()}
 
         </View>
+        {this.gameStatus()}
         </View>
       )
+
+    }
 
 
 }
@@ -122,9 +216,13 @@ addToRound(){
   let currentRound = this.state.round;
   currentRound ++;
   let score = 100 * currentRound;
-  this.setState({round: currentRound, playerSequence: [], score: score})
-  this.addToSequence()
-console.log(this.state.score);
+  var that = this;
+  this.setState({round: currentRound, playerSequence: [], score: score},function(){that.onSendScore()});
+
+
+  this.addToSequence();
+
+// this.onSendScore();
 }
 
 addToSequence (){
@@ -171,7 +269,6 @@ animateSequence(newSequence){
       }, i * 1000);
 
 
-
   }
 
 
@@ -206,13 +303,45 @@ animateSequence(newSequence){
 
 
 }
-
 gameOver(){
+  var that = this;
+  // this.setState({gamestatus: "done"}, function(){
+  //   that.gameStatus();
+  //
+  // })
 
-    this.props.setGame()
+    setTimeout(function(){that.props.setGame()}, 3000)
+this.onSendScore("done");
+// this.props.setGame()
+}
+
+gameStatus(){
+
+    if(this.state.score > this.state.history){
+      return this.gameMessage(" Win");
+
+    }else if(this.state.score < this.state.history){
+      return this.gameMessage(" Lose");
+
+    }else if (this.state.score === this.state.history){
+
+        return this.gameMessage(" Tied");
+
+    }else{
+
+        return this.gameMessage(" are playing");
+
+    }
+}
+
+gameMessage(status){
 
 
-  }
+return <Text> You {status} </Text>
+
+
+}
+
 }
 
 
@@ -229,6 +358,7 @@ var styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS,
     justifyContent: 'center',
     alignItems: 'center',
+    margin: 10
 
   },
   letter: {
@@ -240,8 +370,9 @@ var styles = StyleSheet.create({
   },
 
   score: {
+    top: 10,
     color: 'black',
-    fontSize: 100
+    fontSize: 50
 
 
   }
@@ -252,4 +383,4 @@ var styles = StyleSheet.create({
 );
 
 
-export default Simonwheel
+export default Multiplayer
