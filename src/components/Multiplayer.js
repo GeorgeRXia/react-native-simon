@@ -56,7 +56,20 @@ onOpenConnection = () =>{
 
 onScoreReceived = (event) =>{
   console.log("score received");
-  console.log( event.data);
+ let receivedEvent = JSON.parse(event.data)
+ var that = this;
+
+if(receivedEvent.gameStatus === "done"){
+  this.setState({
+
+    history: receivedEvent.score,
+    gameStatus: receivedEvent.gameStatus
+
+  })
+
+
+
+}else{
   this.setState({
 
     history: event.data
@@ -64,20 +77,9 @@ onScoreReceived = (event) =>{
     //   ...this.state.history, {owner: false, score: event.data}
     //
     // ],
-
-
-
   })
 
-  this.setState({
-
-    history: event.data,
-    gameStatus: "done"
-
-
-
-  })
-
+}
 
 
 }
@@ -96,18 +98,23 @@ onSendScore = (status) => {
 console.log("sent it");
 
 
-  let score = this.state.score;
-this.ws.send(JSON.stringify(score));
-
-
+let score = this.state.score;
 
 
 if(status === "done"){
   this.setState({
-    gameStatus: "done"
+    gameStatus: "done"  },function(){
 
 
-  })
+    })
+    let game = {gameStatus: "done" ,score: score}
+
+    this.ws.send(JSON.stringify(game));
+}else{
+
+
+this.ws.send(JSON.stringify(score));
+
 
 }
 
@@ -117,7 +124,7 @@ if(status === "done"){
 
 
 render() {
-if(this.state.gameStatus === ""){
+if(this.state.gameStatus === "done"){
   return (
     <View>
     <Text style={styles.score}>{this.state.history} </Text>
@@ -128,7 +135,7 @@ if(this.state.gameStatus === ""){
     {this.renderTiles()}
 
     </View>
-
+{this.gameStatus()}
     </View>
   )
 
@@ -146,7 +153,7 @@ else{
         {this.renderTiles()}
 
         </View>
-        {this.gameStatus()}
+
         </View>
       )
 
@@ -195,6 +202,11 @@ playTheGame(id){
      if(computerSequence[i] === playerSequence[i] ){
 
         this.setState({playerSequence: playerSequence})
+        if (computerSequence.length === playerSequence.length){
+
+          this.addToRound()
+
+        }
 
       }else {
 
@@ -202,11 +214,7 @@ playTheGame(id){
 
       }
 
-      if (computerSequence.length === playerSequence.length){
 
-        this.addToRound()
-
-      }
 
 
     }
@@ -310,7 +318,7 @@ gameOver(){
   //
   // })
 
-    setTimeout(function(){that.props.setGame()}, 3000)
+    setTimeout(function(){that.props.setGame()}, 4000)
 this.onSendScore("done");
 // this.props.setGame()
 }
