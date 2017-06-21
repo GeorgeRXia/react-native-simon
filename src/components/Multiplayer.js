@@ -32,7 +32,8 @@ class Multiplayer extends Component {
     startGame: props.startGame,
     score: 0,
     history:"",
-    gameStatus:""
+    opponentsGameStatus:"",
+    ownGameStatus:""
 
   };
 
@@ -63,7 +64,7 @@ if(receivedEvent.gameStatus === "done"){
   this.setState({
 
     history: receivedEvent.score,
-    gameStatus: receivedEvent.gameStatus
+    opponentsGameStatus: receivedEvent.gameStatus
 
   })
 
@@ -103,7 +104,7 @@ let score = this.state.score;
 
 if(status === "done"){
   this.setState({
-    gameStatus: "done"  },function(){
+    ownGameStatus: "done"  },function(){
 
 
     })
@@ -124,7 +125,8 @@ this.ws.send(JSON.stringify(score));
 
 
 render() {
-if(this.state.gameStatus === "done"){
+if(this.state.ownGameStatus === "done" && this.state.opponentsGameStatus === "done"){
+
   return (
     <View>
     <Text style={styles.score}>{this.state.history} </Text>
@@ -140,9 +142,22 @@ if(this.state.gameStatus === "done"){
   )
 
 
-}
+}else if (this.state.ownGameStatus === "done"){
+  return (
+    <View>
+    <Text style={styles.score}>{this.state.history} </Text>
+    <Text style={styles.score}> {this.state.score} </Text>
 
-else{
+    <View style={styles.container} >
+
+    {this.renderTiles()}
+
+    </View>
+
+    </View>
+  )
+
+}else{
       return (
         <View>
         <Text style={styles.score}>{this.state.history} </Text>
@@ -318,12 +333,14 @@ gameOver(){
   //
   // })
 
-    setTimeout(function(){that.props.setGame()}, 4000)
+
 this.onSendScore("done");
 // this.props.setGame()
 }
 
 gameStatus(){
+  var that = this;
+  setTimeout(function(){  that.props.setGame()}, 4000);
 
     if(this.state.score > this.state.history){
       return this.gameMessage(" Win");
