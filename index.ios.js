@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import Simonwheel from './src/components/Simonwheel';
 import Multiplayer from './src/components/Multiplayer';
+import MatchingGameMultiplayer from './src/components/MatchingGameMultiplayer';
 import Button from 'react-native-button';
 
 
@@ -16,13 +17,15 @@ class App extends Component {
     super()
     this.state={
       game:false,
-      multiplayer: false
+      multiplayer: false,
+      matchingGameMultiplayer: false
 
     }
 
   this.setGame = this.setGame.bind(this);
   this.resetGame = this.resetGame.bind(this);
   this.setMultiplayer = this.setMultiplayer.bind(this);
+  this.matchingGameMultiplayer = this.matchingGameMultiplayer.bind(this);
   }
 
   render() {
@@ -32,7 +35,7 @@ class App extends Component {
 
       <Button onPress={this.setGame} > Start Game </Button>
       <Button onPress={this.setMultiplayer} > Multiplayer</Button>
-  
+      <Button onPress={this.matchingGameMultiplayer}> Matching Game Multiplayer </Button>
 
       </View>
     );
@@ -43,6 +46,11 @@ return(
 
 )
 
+
+
+  }else if (this.state.matchingGameMultiplayer === true){
+
+    return <MatchingGameMultiplayer startGame={this.state.game} setGame= {this.resetGame}/>
 
 
   }else{
@@ -65,6 +73,10 @@ return(
   setMultiplayer(){
     this.setState({multiplayer: true, game: true})
 
+
+  }
+  matchingGameMultiplayer(){
+    this.setState({matchingGameMultiplayer: true, game: true})
 
   }
 }

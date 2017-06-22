@@ -18,7 +18,7 @@ const LETTER_SIZE = 50;
 
 
 
-class Multiplayer extends Component {
+class MatchingGameMultiplayer extends Component {
   constructor(props){
     super(props)
   this.state = {
@@ -31,7 +31,8 @@ class Multiplayer extends Component {
     score: 0,
     history:"",
     opponentsGameStatus:"",
-    ownGameStatus:""
+    ownGameStatus:"",
+    GameSetter:""
 
   };
 
@@ -44,7 +45,15 @@ componentWillMount(){
   this.ws.onmessage = this.onScoreReceived;
   this.ws.onerror = this.onError;
   this.ws.onclose = this.onClose;
-  this.addToSequence()
+
+  this.addToSequence();
+
+}
+
+componentDidMount(){
+
+
+
 }
 
 onOpenConnection = () =>{
@@ -54,6 +63,12 @@ onOpenConnection = () =>{
 }
 
 onScoreReceived = (event) =>{
+
+console.log(event.data);
+
+
+
+
   console.log("score received");
  let receivedEvent = JSON.parse(event.data)
  var that = this;
@@ -123,15 +138,15 @@ if(this.state.ownGameStatus === "done" && this.state.opponentsGameStatus === "do
 
   return (
     <View>
-    <Text style={styles.score}>Opponents Score: {this.state.history} </Text>
-    <Text style={styles.score}>Your Score: {this.state.score} </Text>
-    {this.gameStatus()}
+    <Text style={styles.score}>{this.state.history} </Text>
+    <Text style={styles.score}> {this.state.score} </Text>
+
     <View style={styles.container} >
 
     {this.renderTiles()}
 
     </View>
-
+{this.gameStatus()}
     </View>
   )
 
@@ -139,23 +154,23 @@ if(this.state.ownGameStatus === "done" && this.state.opponentsGameStatus === "do
 }else if (this.state.ownGameStatus === "done"){
   return (
     <View>
-    <Text style={styles.score}>Opponents Score: {this.state.history} </Text>
-    <Text style={styles.score}> Your Score: {this.state.score} </Text>
+    <Text style={styles.score}>{this.state.history} </Text>
+    <Text style={styles.score}> {this.state.score} </Text>
 
     <View style={styles.container} >
 
     {this.renderTiles()}
 
     </View>
-<Text>Waiting for other player... </Text>
+
     </View>
   )
 
 }else{
       return (
         <View>
-        <Text style={styles.score}>Opponents Score: {this.state.history} </Text>
-        <Text style={styles.score}> Your Score: {this.state.score} </Text>
+        <Text style={styles.score}>{this.state.history} </Text>
+        <Text style={styles.score}> {this.state.score} </Text>
 
         <View style={styles.container} >
 
@@ -305,7 +320,7 @@ gameStatus(){
 }
 
 gameMessage(status){
-  return <Text style={styles.score}> You {status} </Text>
+  return <Text> You {status} </Text>
 
 
 }
@@ -340,7 +355,7 @@ var styles = StyleSheet.create({
   score: {
     top: 10,
     color: 'black',
-    fontSize: 25
+    fontSize: 50
 
 
   }
@@ -351,4 +366,4 @@ var styles = StyleSheet.create({
 );
 
 
-export default Multiplayer
+export default MatchingGameMultiplayer
