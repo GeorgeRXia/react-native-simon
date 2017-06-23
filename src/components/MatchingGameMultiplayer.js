@@ -30,7 +30,8 @@ class MatchingGameMultiplayer extends Component {
     opponentsGameStatus:"",
     ownGameStatus:"",
     GameSetter:"",
-    opponentInGame:""
+    opponentInGame:"",
+
 
   };
   this.otherPlayer = this.otherPlayer.bind(this)
@@ -113,25 +114,19 @@ onScoreReceived = (event) =>{
 
 console.log(event.data);
 
-
-
-
-  console.log("score received");
  let receivedEvent = JSON.parse(event.data)
  var that = this;
 
 if(receivedEvent.gameStatus === "done"){
-  this.setState({
-
-
-    opponentsGameStatus: receivedEvent.gameStatus
-
-  })
+  this.setState({opponentsGameStatus: receivedEvent.gameStatus,
+    computerSequence: receivedEvent.computerSequence
+  },function(){
+    that.animateSequence(receivedEvent.computerSequence)})
 
 
 
 }else if(receivedEvent.turn === "other"){
-  var that = this;
+
   this.setState({computerSequence: receivedEvent.computerSequence, turn: receivedEvent.turn},function(){
     that.animateSequence(receivedEvent.computerSequence);
 
@@ -141,6 +136,10 @@ if(receivedEvent.gameStatus === "done"){
 
 }else if(receivedEvent.turn === "original"){
   this.addToRound();
+
+} else if(receivedEvent.gameStatus === "loser"){
+
+  this.setState({gameSetter: receivedEvent.gameStatus})
 
 }else{
   this.setState({
@@ -183,6 +182,9 @@ if(status === "done"){
 
   let game = {turn: "original", computerSequence: computerSequence}
   this.ws.send(JSON.stringify(game));
+}else if (status === "gameOver"){
+    let game = {gameStatus: "loser"}
+    this.ws.send(JSON.stringify(game));
 }else{
 
   let game = {turn: "other", computerSequence: computerSequence}
@@ -197,7 +199,7 @@ this.ws.send(JSON.stringify(game));
 
 
 render() {
-if(this.state.ownGameStatus === "done" && this.state.opponentsGameStatus === "done"){
+if(this.state.gameSetter === "winner" || this.state.gameSetter === "loser"){
 
   return (
     <View>
@@ -209,7 +211,7 @@ if(this.state.ownGameStatus === "done" && this.state.opponentsGameStatus === "do
     {this.renderTiles()}
 
     </View>
-{this.gameStatus()}
+{this.gameStatus(this.state.gameSetter)}
     </View>
   )
 
@@ -288,14 +290,17 @@ console.log(computerSequence);
         this.setState({playerSequence: playerSequence})
         if (computerSequence.length === playerSequence.length){
 
-          if(this.state.turn === "other"){
+          if(this.state.opponentsGameStatus === "done"){
+            this.setState({gameSetter: "winner"})
+              this.onSendScore("gameOver");
+
+
+        }else if (this.state.turn === "other"){
             let currentRound = this.state.round;
             currentRound ++;
 
             var that = this;
             this.setState({round: currentRound, playerSequence: []});
-
-
             this.onSendScore("original");
 
           }else{
@@ -308,8 +313,12 @@ console.log(computerSequence);
 
       }else {
 console.log("Gameover");
-        this.gameOver();
 
+    if(this.state.opponentsGameStatus === "done"){
+      this.continueGame();
+    }else{
+        this.turnOver();
+      }
       }
 
     }
@@ -369,31 +378,29 @@ animateSequence(newSequence){
   }
 
 }
-gameOver(){
-  var that = this;
+turnOver(){
+
   this.onSendScore("done");
 
 }
+continueGame(){
 
-gameStatus(){
-  // var that = this;
-  // setTimeout(function(){  that.props.setGame()}, 4000);
-  //
-  //   if(){
-  //     return this.gameMessage(" Win");
-  //
-  //   }else if(this.state.score < this.state.history){
-  //     return this.gameMessage(" Lose");
-  //
-  //   }else if (this.state.score === this.state.history){
-  //
-  //       return this.gameMessage(" Tied");
-  //
-  //   }else{
-  //
-  //       return this.gameMessage(" are playing");
-  //
-  //   }
+this.onSendScore("continueGame");
+
+}
+
+gameStatus(status){
+
+
+    if(status === "winner"){
+      return this.gameMessage(" Win");
+
+
+    }else{
+
+        return this.gameMessage(" lose");
+
+    }
 }
 
 gameMessage(status){
