@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Animated
 } from 'react-native';
+import axios from 'axios';
 
 
 const {width, height} = require('Dimensions').get('window');
@@ -17,27 +18,24 @@ const TILE_SIZE = CELL_SIZE - CELL_PADDING * 2;
 const LETTER_SIZE = 50;
 
 
-
 class MatchingGameMultiplayer extends Component {
   constructor(props){
     super(props)
   this.state = {
     lit: 0,
     computerSequence: [],
-    computerSequenceIndex:0,
     playerSequence: [],
     round: 1,
     startGame: props.startGame,
-    score: 0,
-    history:"",
     opponentsGameStatus:"",
     ownGameStatus:"",
-    GameSetter:""
+    GameSetter:"",
+    opponentInGame:""
 
   };
-
+  this.otherPlayer = this.otherPlayer.bind(this)
 }
-componentWillMount(){
+startWs(){
 
   this.ws = new WebSocket('ws://localhost:3001');
 
@@ -46,15 +44,64 @@ componentWillMount(){
   this.ws.onerror = this.onError;
   this.ws.onclose = this.onClose;
 
-  this.addToSequence();
-
-}
-
-componentDidMount(){
-
 
 
 }
+setTimeOut(){
+var that = this;
+
+  this.intervalPlayer = setInterval(() => {
+
+    this.otherPlayer();
+      console.log("This is looping");
+
+      if(that.state.opponentInGame === true){
+        that.startWs();
+        clearInterval(that.intervalPlayer);
+
+      }
+
+
+  }, 1000)
+
+
+
+}
+
+  componentWillMount(){
+
+      var that = this;
+
+    console.log("it is in axios mount");
+    axios.post('http://localhost:3000/games',{
+      data:{
+          user_id: 2
+
+      }
+    }).then(function(response){
+      console.log(response.data);
+      that.setState({opponentInGame: response.data},function(){;
+      if (response.data){
+      that.addToSequence();
+    }
+  })
+  })
+
+this.setTimeOut()
+
+
+
+
+  }
+
+  otherPlayer(){
+    var that = this;
+    console.log("hey");
+    axios.get('http://localhost:3000/games').then(function(response){
+      console.log(response.data);
+      that.setState({opponentInGame: response.data});
+    })
+  }
 
 onOpenConnection = () =>{
   console.log("open");
@@ -76,12 +123,24 @@ console.log(event.data);
 if(receivedEvent.gameStatus === "done"){
   this.setState({
 
-    history: receivedEvent.score,
+
     opponentsGameStatus: receivedEvent.gameStatus
 
   })
 
 
+
+}else if(receivedEvent.turn === "other"){
+  var that = this;
+  this.setState({computerSequence: receivedEvent.computerSequence, turn: receivedEvent.turn},function(){
+    that.animateSequence(receivedEvent.computerSequence);
+
+  })
+
+
+
+}else if(receivedEvent.turn === "original"){
+  this.addToRound();
 
 }else{
   this.setState({
@@ -105,10 +164,10 @@ console.log("onclose", event.code, event.reason);
 }
 
 onSendScore = (status) => {
-console.log("sent it");
+console.log(status);
 
 
-let score = this.state.score;
+let computerSequence = this.state.computerSequence;
 
 
 if(status === "done"){
@@ -117,13 +176,17 @@ if(status === "done"){
 
 
     })
-    let game = {gameStatus: "done" ,score: score}
+    let game = {gameStatus: "done", computerSequence: computerSequence}
 
     this.ws.send(JSON.stringify(game));
+}else if(status === "original"){
+
+  let game = {turn: "original", computerSequence: computerSequence}
+  this.ws.send(JSON.stringify(game));
 }else{
 
-
-this.ws.send(JSON.stringify(score));
+  let game = {turn: "other", computerSequence: computerSequence}
+this.ws.send(JSON.stringify(game));
 
 
 }
@@ -138,8 +201,8 @@ if(this.state.ownGameStatus === "done" && this.state.opponentsGameStatus === "do
 
   return (
     <View>
-    <Text style={styles.score}>{this.state.history} </Text>
-    <Text style={styles.score}> {this.state.score} </Text>
+
+    <Text style={styles.score}> {this.state.round} </Text>
 
     <View style={styles.container} >
 
@@ -154,8 +217,8 @@ if(this.state.ownGameStatus === "done" && this.state.opponentsGameStatus === "do
 }else if (this.state.ownGameStatus === "done"){
   return (
     <View>
-    <Text style={styles.score}>{this.state.history} </Text>
-    <Text style={styles.score}> {this.state.score} </Text>
+
+    <Text style={styles.score}> {this.state.round} </Text>
 
     <View style={styles.container} >
 
@@ -169,8 +232,8 @@ if(this.state.ownGameStatus === "done" && this.state.opponentsGameStatus === "do
 }else{
       return (
         <View>
-        <Text style={styles.score}>{this.state.history} </Text>
-        <Text style={styles.score}> {this.state.score} </Text>
+        <Text style={styles.score}>{this.state.round} </Text>
+
 
         <View style={styles.container} >
 
@@ -213,7 +276,7 @@ renderTile(id, position, bgColor, litBgColor) {
 }
 playTheGame(id){
       let computerSequence = this.state.computerSequence;
-
+console.log(computerSequence);
       let playerSequence = this.state.playerSequence;
       playerSequence.push(id)
 
@@ -225,12 +288,26 @@ playTheGame(id){
         this.setState({playerSequence: playerSequence})
         if (computerSequence.length === playerSequence.length){
 
-          this.addToRound()
+          if(this.state.turn === "other"){
+            let currentRound = this.state.round;
+            currentRound ++;
+
+            var that = this;
+            this.setState({round: currentRound, playerSequence: []});
+
+
+            this.onSendScore("original");
+
+          }else{
+
+            this.onSendScore();
+
+          }
 
         }
 
       }else {
-
+console.log("Gameover");
         this.gameOver();
 
       }
@@ -241,9 +318,8 @@ addToRound(){
 
   let currentRound = this.state.round;
   currentRound ++;
-  let score = 100 * currentRound;
   var that = this;
-  this.setState({round: currentRound, playerSequence: [], score: score},function(){that.onSendScore()});
+  this.setState({round: currentRound, playerSequence: []});
 
 
   this.addToSequence();
@@ -261,6 +337,7 @@ addToSequence (){
 
 }
 animateSequence(newSequence){
+  console.log("It comes into animate sequence");
   var that = this
   for(let i = 0; i<newSequence.length; i++){
 
@@ -299,24 +376,24 @@ gameOver(){
 }
 
 gameStatus(){
-  var that = this;
-  setTimeout(function(){  that.props.setGame()}, 4000);
-
-    if(this.state.score > this.state.history){
-      return this.gameMessage(" Win");
-
-    }else if(this.state.score < this.state.history){
-      return this.gameMessage(" Lose");
-
-    }else if (this.state.score === this.state.history){
-
-        return this.gameMessage(" Tied");
-
-    }else{
-
-        return this.gameMessage(" are playing");
-
-    }
+  // var that = this;
+  // setTimeout(function(){  that.props.setGame()}, 4000);
+  //
+  //   if(){
+  //     return this.gameMessage(" Win");
+  //
+  //   }else if(this.state.score < this.state.history){
+  //     return this.gameMessage(" Lose");
+  //
+  //   }else if (this.state.score === this.state.history){
+  //
+  //       return this.gameMessage(" Tied");
+  //
+  //   }else{
+  //
+  //       return this.gameMessage(" are playing");
+  //
+  //   }
 }
 
 gameMessage(status){
