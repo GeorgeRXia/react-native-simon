@@ -35,7 +35,7 @@ class MatchingGameMultiplayer extends Component {
 
 
   };
-  this.otherPlayer = this.otherPlayer.bind(this)
+
 }
 startWs(){
 
@@ -67,14 +67,11 @@ var that = this;
   }, 1000)
 
 
-
 }
 
   componentWillMount(){
 
-      var that = this;
-
-    console.log("it is in axios mount");
+    var that = this;
     axios.post('http://localhost:3000/games',{
       data:{
           user_id: 2

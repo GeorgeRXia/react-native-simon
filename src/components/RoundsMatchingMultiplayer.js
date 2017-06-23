@@ -32,11 +32,12 @@ class RoundsMatchingMultiplayer extends Component {
     GameSetter:"",
     opponentInGame:"",
     turn:"",
-    speed: 1000,
+    points:0,
+    speed:1
 
 
   };
-  this.otherPlayer = this.otherPlayer.bind(this)
+
 }
 startWs(){
 
@@ -68,14 +69,11 @@ var that = this;
   }, 1000)
 
 
-
 }
 
   componentWillMount(){
 
-      var that = this;
-
-    console.log("it is in axios mount");
+    var that = this;
     axios.post('http://localhost:3000/games',{
       data:{
           user_id: 2
@@ -137,14 +135,9 @@ if(receivedEvent.gameStatus === "done"){
 }else if(receivedEvent.turn === "original"){
   this.addToRound();
 
-} else if(receivedEvent.gameStatus === "loser" || receivedEvent.gameStatus === "winner" ){
+} else if(receivedEvent.gameStatus === "loser" || receivedEvent.gameStatus === "winner" ||receivedEvent.gameStatus === "tie" ){
 
   this.setState({gameSetter: receivedEvent.gameStatus})
-
-}else if (receivedEvent.turn === "continueGame"){
-  console.log("received continuedGame");
-  this.setState({ownGameStatus: "",computerSequence: receivedEvent.computerSequence},function(){that.animateSequence(receivedEvent.computerSequence)})
-
 
 }else{
   this.setState({
@@ -189,10 +182,9 @@ onSendScore = (status) => {
   let game = {gameStatus: "winner"}
   this.ws.send(JSON.stringify(game));
 
-}else if (status === "continueGame") {
+}else if (status === "tieGame") {
 
-    this.setState({ownGameStatus: "" })
-  let game = {turn: "continueGame", computerSequence: computerSequence}
+  let game = {gameStatus: "tie"}
 this.ws.send(JSON.stringify(game));
 
 }else{
@@ -209,7 +201,7 @@ this.ws.send(JSON.stringify(game));
 
 
 render() {
-if(this.state.gameSetter === "winner" || this.state.gameSetter === "loser"){
+if(this.state.gameSetter === "winner" || this.state.gameSetter === "loser" || this.state.gameSetter === "tie"){
 
   return (
     <View>
@@ -323,7 +315,7 @@ playTheGame(id){
    console.log("Gameover");
    if(this.state.opponentsGameStatus === "done"){
       console.log("Gameover2");
-      this.continueGame();
+      this.tieGame();
    } else if(this.state.turn != "original") {
       this.setState({gameSetter: "loser"})
        this.onSendScore("winner");
@@ -360,6 +352,7 @@ addToSequence (){
 }
 animateSequence(newSequence){
   console.log("It comes into animate sequence");
+  var speedUp = this.state.speed - (this.state.round * 0.2)
   var that = this
   for(let i = 0; i<newSequence.length; i++){
 
@@ -375,17 +368,17 @@ animateSequence(newSequence){
 
             that.setState({lit:0})
 
-        },990)
+        },(990))
 
         }else{
         setTimeout(function(){
           that.setState({lit: 0})
 
-        },1000)
+        }, (1000))
       }
 
 
-      }, i * 1000);
+    }, (speedUp*i * 1000));
 
 
   }
@@ -396,9 +389,9 @@ turnOver(){
   this.onSendScore("done");
 
 }
-continueGame(){
-
-this.onSendScore("continueGame");
+tieGame(){
+  this.setState({gameSetter:"tie"})
+this.onSendScore("tieGame");
 
 }
 
@@ -406,6 +399,10 @@ gameStatus(status){
 
     if(status === "winner"){
       return this.gameMessage(" Win");
+
+
+    }else if (status === "tie"){
+      return this.gameMessage(" tied");
 
 
     }else{
