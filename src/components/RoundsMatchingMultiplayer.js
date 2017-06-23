@@ -18,7 +18,7 @@ const TILE_SIZE = CELL_SIZE - CELL_PADDING * 2;
 const LETTER_SIZE = 50;
 
 
-class MatchingGameMultiplayer extends Component {
+class RoundsMatchingMultiplayer extends Component {
   constructor(props){
     super(props)
   this.state = {
@@ -31,7 +31,8 @@ class MatchingGameMultiplayer extends Component {
     ownGameStatus:"",
     GameSetter:"",
     opponentInGame:"",
-    turn:""
+    turn:"",
+    speed: 1000,
 
 
   };
@@ -136,9 +137,14 @@ if(receivedEvent.gameStatus === "done"){
 }else if(receivedEvent.turn === "original"){
   this.addToRound();
 
-} else if(receivedEvent.gameStatus === "loser" || receivedEvent.gameStatus === "winner" ||receivedEvent.gameStatus === "tie" ){
+} else if(receivedEvent.gameStatus === "loser" || receivedEvent.gameStatus === "winner" ){
 
   this.setState({gameSetter: receivedEvent.gameStatus})
+
+}else if (receivedEvent.turn === "continueGame"){
+  console.log("received continuedGame");
+  this.setState({ownGameStatus: "",computerSequence: receivedEvent.computerSequence},function(){that.animateSequence(receivedEvent.computerSequence)})
+
 
 }else{
   this.setState({
@@ -183,9 +189,10 @@ onSendScore = (status) => {
   let game = {gameStatus: "winner"}
   this.ws.send(JSON.stringify(game));
 
-}else if (status === "tieGame") {
+}else if (status === "continueGame") {
 
-  let game = {gameStatus: "tie"}
+    this.setState({ownGameStatus: "" })
+  let game = {turn: "continueGame", computerSequence: computerSequence}
 this.ws.send(JSON.stringify(game));
 
 }else{
@@ -202,7 +209,7 @@ this.ws.send(JSON.stringify(game));
 
 
 render() {
-if(this.state.gameSetter === "winner" || this.state.gameSetter === "loser" || this.state.gameSetter === "tie"){
+if(this.state.gameSetter === "winner" || this.state.gameSetter === "loser"){
 
   return (
     <View>
@@ -316,7 +323,7 @@ playTheGame(id){
    console.log("Gameover");
    if(this.state.opponentsGameStatus === "done"){
       console.log("Gameover2");
-      this.tieGame();
+      this.continueGame();
    } else if(this.state.turn != "original") {
       this.setState({gameSetter: "loser"})
        this.onSendScore("winner");
@@ -389,9 +396,9 @@ turnOver(){
   this.onSendScore("done");
 
 }
-tieGame(){
-  this.setState({gameSetter:"tie"})
-this.onSendScore("tieGame");
+continueGame(){
+
+this.onSendScore("continueGame");
 
 }
 
@@ -399,10 +406,6 @@ gameStatus(status){
 
     if(status === "winner"){
       return this.gameMessage(" Win");
-
-
-    }else if (status === "tie"){
-      return this.gameMessage(" tied");
 
 
     }else{
@@ -459,4 +462,4 @@ var styles = StyleSheet.create({
 );
 
 
-export default MatchingGameMultiplayer
+export default RoundsMatchingMultiplayer;
