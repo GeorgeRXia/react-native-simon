@@ -181,14 +181,13 @@ class RoundsMatchingMultiplayer extends Component {
 
     let game = {turn: "original", computerSequence: computerSequence, points: this.state.points};
     this.ws.send(JSON.stringify(game));
-  }else if (status === "loser"){
+    }else if (status === "loser"){
       let game = {gameStatus: "loser"}
       this.ws.send(JSON.stringify(game));
-  }else if (status === "winner"){
-    console.log("it got into the winner part");
-    let game = {gameStatus: "winner"}
-    this.ws.send(JSON.stringify(game));
-
+    }else if (status === "winner"){
+      console.log("it got into the winner part");
+      let game = {gameStatus: "winner"}
+      this.ws.send(JSON.stringify(game));
   }else if (status === "tieGame") {
 
     let game = {gameStatus: "tie"}
@@ -360,11 +359,11 @@ class RoundsMatchingMultiplayer extends Component {
         if(that.state.round === 4){
 
           if(that.state.points > this.state.opponentsPoints){
-            status = "winner";
-            ownStatus = "loser";
-          }else if(that.state.points < this.state.opponentsPoints){
-            status  = "loser";
+            status = "loser";
             ownStatus = "winner";
+          }else if(that.state.points < this.state.opponentsPoints){
+            status  = "winner";
+            ownStatus = "loser";
           }else{
             status = "tieGame";
             ownStatus = "tie"
@@ -387,11 +386,11 @@ class RoundsMatchingMultiplayer extends Component {
           if(that.state.round === 4){
 
             if(that.state.points > this.state.opponentsPoints){
-              status = "winner";
-              ownStatus = "loser";
-            }else if(that.state.points < this.state.opponentsPoints){
-              status  = "loser";
+              status = "loser";
               ownStatus = "winner";
+            }else if(that.state.points < this.state.opponentsPoints){
+              status  = "winner";
+              ownStatus = "loser";
             }else{
               status = "tieGame";
               ownStatus = "tie"
@@ -437,7 +436,7 @@ class RoundsMatchingMultiplayer extends Component {
   animateSequence(newSequence){
 
 
-    let speed = (this.state.speed - (this.state.round * 0.19));
+    let speed = (this.state.speed - (this.state.round * 0.25));
     var that = this;
     for(let i = 0; i<newSequence.length; i++){
 
