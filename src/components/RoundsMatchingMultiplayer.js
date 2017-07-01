@@ -310,7 +310,7 @@ class RoundsMatchingMultiplayer extends Component {
               console.log(that.state.opponentsPoints);
               let status = "";
               let ownStatus = "";
-            if(that.state.round === 4){
+            if(that.state.round === 6){
                 if(that.state.points > this.state.opponentsPoints){
                   status = "loser";
                   ownStatus = "winner";
@@ -356,7 +356,7 @@ class RoundsMatchingMultiplayer extends Component {
       let points = currentPoints - 100;
       var that = this;
       this.setState({round: currentRound, playerSequence: [], points: points},function(){
-        if(that.state.round === 4){
+        if(that.state.round === 6){
 
           if(that.state.points > this.state.opponentsPoints){
             status = "loser";
@@ -383,7 +383,7 @@ class RoundsMatchingMultiplayer extends Component {
         let currentPoints = this.state.points;
         let points = currentPoints - 100;
         this.setState({points: points},function(){
-          if(that.state.round === 4){
+          if(that.state.round === 6){
 
             if(that.state.points > this.state.opponentsPoints){
               status = "loser";
