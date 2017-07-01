@@ -436,7 +436,7 @@ class RoundsMatchingMultiplayer extends Component {
   animateSequence(newSequence){
 
 
-    let speed = (this.state.speed - (this.state.round * 0.25));
+    let speed = (this.state.speed - (this.state.round * 0.15));
     var that = this;
     for(let i = 0; i<newSequence.length; i++){
 
