@@ -1,5 +1,5 @@
 # react-native-simon
-*This project was done in ten day, so it was not coded in best practice. I am right now refactoring the code, and will be done on July 17, 2017*
+*This project was done in ten day, so it was not coded in best practice. I am planning to refactor the code after I learn redux*
 
 
 Technologies: React Native, Rails, Node websockets.
